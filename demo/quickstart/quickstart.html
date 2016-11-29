@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smarttree Demo</title>
+    <div id="smartTree" class="smart-tree"></div>
+    <div id="dragTest" class="dragtest">
+        <ul class="dragtestcontainer">
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+            <li>asdfsadfsdfsaf</li>
+        </ul>
+    </div>
+    <button onclick="scrollTo()">scrollTo</button>
+    <!-- load css at last -->
+    <style type="text/css">
+        .smart-tree {
+            margin: 20px 0 0 20px;
+            position: relative;
+            width: 300px;
+            height: 400px;
+            border: 1px solid grey;
+        }
+        .dragtest {
+            position: relative;
+            margin: 20px 0 0 20px;
+            width: 300px;
+            height: 300px;
+            border: 1px solid grey;
+            display: none;
+        }
+        .dragtestcontainer {
+            position: relative;
+            width: 100%;
+            height: 1000px;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="../../css/SmartTreeStyle/jquery.smarttree.css">
+</head>
+<body>
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.smarttree.all.js"></script>
+<script type="text/javascript" src="../../js/jquery.mousewheel.min.js"></script>
+<script type="text/javascript">
+    var data = [{
+        id: "001",
+        name: "item1"
+    }, {
+        id: "002",
+        name: "item2"
+    }];
+    for (var i = 0; i < 100; i++) {
+        data.push({
+            id: "001" + i,
+            pId: "001",
+            name: "item1-" + i
+        })
+    }
+    for (var i = 0; i < 100; i++) {
+        data.push({
+            id: "0013" + i,
+            pId: "0013",
+            name: "item1-3-" + i
+        })
+    }
+
+    $.fn.smartTree.init($("#smartTree"), {
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        edit: {
+            enable: true,
+            drag: {}
+        },
+        callback: {
+            beforeDrag: function() {
+                console.log("=beforeDrag");
+                return true;
+            },
+            beforeDragOpen:null,
+            beforeDrop:null,
+            beforeEditName:null,
+            beforeRename:null,
+            onDrag: function() {
+                console.log("=onDrag")
+            },
+            onDragMove: function() {
+                console.log("=onDragMove")
+            },
+            onDrop: function() {
+                console.log("=onDrop")
+            },
+            onRename:null
+        }
+    }, data);
+</script>
+</body>
+</html>

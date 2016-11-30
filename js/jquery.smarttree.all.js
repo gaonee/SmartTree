@@ -7,7 +7,7 @@
  * Licensed same as jquery - MIT License
  * http://www.opensource.org/licenses/mit-license.php
  *
- * email: 841374169@qq.com
+ * email: 18551750323@163.com
  * Begin date: 2016-09-22
  */
 
@@ -855,6 +855,7 @@
         },
         switchTransform: function(setting, node) {
             view.expandNode(setting, node, node.collapse);
+            setting.treeObj.stScrollbar("update");
         },
         setNodeName: function(setting, node) {
             var name = data.getNodeName(setting, node);
@@ -1143,7 +1144,7 @@
  * Licensed same as jquery - MIT License
  * http://www.opensource.org/licenses/mit-license.php
  *
- * email: 841374169@qq.com
+ * email: 18551750323@163.com
  * Begin date: 2016-10-13
  */
 (function($) {
@@ -1357,7 +1358,7 @@
  * Licensed same as jquery - MIT License
  * http://www.opensource.org/licenses/mit-license.php
  *
- * email: 841374169@qq.com
+ * email: 18551750323@163.com
  * Begin date: 2016-11-06
  */
 ;(function($) {
@@ -1509,7 +1510,7 @@
  * Licensed same as jquery - MIT License
  * http://www.opensource.org/licenses/mit-license.php
  *
- * email: 841374169@qq.com
+ * email: 18551750323@163.com
  * Begin date: 2016-11-17
  */
 ;(function($) {
@@ -1542,6 +1543,7 @@
             $(domString).appendTo(this.wrapObj);
             this.$scrollContainer = this.wrapObj.find(".st-container");
             this.$dragger = this.wrapObj.find(".st-dragger");
+            this.updateDraggerHeight();
         },
         bindEvent: function() {
             var o = this;
@@ -1665,6 +1667,20 @@
             var draggerTop = scrollTop / scrollHeight * draggerContainerHeight;
             this.setDraggerTop(draggerTop);
         },
+        updateDraggerHeight: function() {
+            var scrollContainerHeight = this.$scrollContainer.height();
+            var wrapHeight = this.wrapObj.height();
+            var draggerContainerHeight = this.obj.find(".st-draggercontainer").height();
+            var draggerHeight = draggerContainerHeight * wrapHeight / scrollContainerHeight;
+            if (draggerHeight >= draggerContainerHeight) {
+                this.$dragger.hide();
+            } else {
+                if (draggerHeight / draggerContainerHeight < 0.05) {
+                    draggerHeight = draggerContainerHeight / 100;
+                }
+                this.$dragger.height(draggerHeight).show();
+            }
+        },
         _apply: function(fun, param, defaultValue) {
             if ((typeof fun) == "function") {
                 return fun.apply("", param?param:[]);
@@ -1683,6 +1699,10 @@
                     }
                     case "scrollTo": {
                         sb.scrollTo(arguments[1]);
+                        break;
+                    }
+                    case "update": {
+                        sb.updateDraggerHeight();
                         break;
                     }
                     default: {

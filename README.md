@@ -1,10 +1,9 @@
 # SmartTree
-A viewing area load tree plugin of jQuery.
 
-支持可视区域加载的树形组件
+支持可视区域加载的树形组件，保证大数据情况下组件的迅速加载以及流畅运行。
 
+使用zTree的代码组织方式，接口名称与zTree相同。
 
+在zTree的基础上增加搜索和过滤功能。
 
-Used like zTree
-
-使用zTree的代码组织方式
+功能有待进一步完善，希望大家提出宝贵意见，一定在第一时间进行修改。

@@ -1542,6 +1542,7 @@
 
             $(domString).appendTo(this.wrapObj);
             this.$scrollContainer = this.wrapObj.find(".st-container");
+            this.$draggerContainer = this.wrapObj.find(".st-draggercontainer");
             this.$dragger = this.wrapObj.find(".st-dragger");
             this.updateDraggerHeight();
         },
@@ -1673,12 +1674,13 @@
             var draggerContainerHeight = this.obj.find(".st-draggercontainer").height();
             var draggerHeight = draggerContainerHeight * wrapHeight / scrollContainerHeight;
             if (draggerHeight >= draggerContainerHeight) {
-                this.$dragger.hide();
+                this.$draggerContainer.hide();
             } else {
                 if (draggerHeight / draggerContainerHeight < 0.05) {
                     draggerHeight = draggerContainerHeight / 100;
                 }
-                this.$dragger.height(draggerHeight).show();
+                this.$dragger.height(draggerHeight);
+                this.$draggerContainer.show();
             }
         },
         _apply: function(fun, param, defaultValue) {

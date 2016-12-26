@@ -19,10 +19,10 @@
     cursor: pointer;
 }
 .ztree .ztree-node:hover {
-    background-color: #41aee3;
+    background-color: grey;
 }
 .ztree .ztree-node.focus {
-    background-color: #41aee3;
+    background-color: grey;
 }
 
 .ztree .tree-node-content {
@@ -175,16 +175,18 @@
     position: absolute;
     top: 0;
     width: 100%;
+    cursor: pointer;
 }
 .st-dragger-bar {
     position: relative;
-    width: 100%;
+    width: 4px;
     height: 100%;
     margin: 0 auto;
-    background-color: black;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.75);
 }
 .st-dragger-rail {
-    width: 100%;
+    width: 2px;
     height: 100%;
     margin: 0 auto;
     -webkit-border-radius: 0;

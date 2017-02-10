@@ -20,13 +20,13 @@
 <script type="text/javascript" src="../../js/jquery.smarttree.all.js"></script>
 <script type="text/javascript" src="../../js/jquery.mousewheel.min.js"></script>
 <script type="text/javascript">
-    var data = [{
-        id: "001",
-        name: "item1"
-    }, {
-        id: "002",
-        name: "item2"
-    }];
+    var data = [];
+    for (var i = 0; i < 10; i++) {
+        data.push({
+            id: "00" + (i+1),
+            name: "item" + (i+1)
+        })
+    }
     for (var i = 0; i < 100; i++) {
         data.push({
             id: "001" + i,
@@ -34,7 +34,7 @@
             name: "item1-" + i
         })
     }
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 10000; i++) {
         data.push({
             id: "0013" + i,
             pId: "0013",

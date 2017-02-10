@@ -63,7 +63,6 @@
         treeObj: null,
         treeWrapObj: null,
         singleNodeHeight: 32,
-        scrollBarWidth: 17,
         defaultOpenLevel: 1,
         view: {
             addDiyDom: null,
@@ -400,7 +399,7 @@
             }
             startNode = startNode >= 0 ? startNode : 0;
             endNode = Math.ceil(rect.height / setting.singleNodeHeight) + startNode + 1;
-            endNode = endNode > unfoldNode.length ? unfoldNode.length : endNode;
+            endNode = endNode >= unfoldNode.length ? unfoldNode.length-1 : endNode;
             displayNode[setting.treeId] = [startNode, endNode];
         },
         getNodes: function(setting) {
@@ -485,7 +484,7 @@
 
             node.tId = setting.treeId + "_" + (++r.zId);
             node.parentTId = parent.tId;
-            node.level = level;
+            node.level = level || 0;
 
             if (node[childKey] && node[childKey].length > 0) {
                 node.isParent = true;
@@ -772,9 +771,6 @@
         genNodeContainer: function(setting, node) {
             var paddingLeft = (node.level + 1) * setting.node.SEP;
             var style = "top:" + node.top + "px;padding-left:" + paddingLeft + "px;line-height:" + setting.singleNodeHeight + "px;height:" + setting.singleNodeHeight + "px;";
-            if (setting.data.keep.itemWidth) {
-                style += ("width:" + (setting.treeWrapWidth - setting.scrollBarWidth) + "px");
-            }
 
             return "data-node id='" + node.tId + "' tabindex='0' style='" + style + "' class='ztree-node ellipsis' treenode=''";
         },
@@ -809,7 +805,7 @@
             /**
              * create tree node element when it is going to display
              */
-            for (var i = displayNd[0]; i < displayNd[1]; i++) {
+            for (var i = displayNd[0]; i <= displayNd[1]; i++) {
                 var node = unfoldNode[i];
                 if (node.treeNode) {
                     node.treeNode.css("top", node.top + "px");
@@ -888,11 +884,13 @@
         },
         setNodeExpandState: function(setting, node, expandFlag) {
             if (expandFlag == node.collapse) {
+                var oldIconSkin = data.getNodeIconSkinClass(setting, node);
                 if (expandFlag) {
                     view.unfold(setting, node);
                 } else {
                     view.collapse(setting, node);
                 }
+                node.treeNode.find("[data-iconskin]").removeClass(oldIconSkin).addClass(data.getNodeIconSkinClass(setting, node));
             }
         },
         scrollToTop: function(setting) {
@@ -1528,7 +1526,7 @@
             this.bindEvent();
         },
         createWrap: function() {
-            var $wrap = $("<div class='st-scroll-box'><div class='st-container'></div></div>");
+            var $wrap = $("<div class='st-scroll-box'><div class='st-container show-scrollbar'></div></div>");
             this.obj.children().wrapAll($wrap);
             this.wrapObj = this.obj.find(".st-scroll-box");
         },
@@ -1589,6 +1587,9 @@
 
             this.wrapObj.unbind("mousewheel")
             .bind("mousewheel", function(e, delta, deltaX, deltaY) {
+                if (o.$draggerContainer.is(":hidden")) {
+                    return true;
+                }
                 if (!o.draggingFlag) {
                     o.draggingFlag = true;
                     setTimeout(function() {
@@ -1674,11 +1675,13 @@
             var draggerContainerHeight = this.obj.find(".st-draggercontainer").height();
             var draggerHeight = draggerContainerHeight * wrapHeight / scrollContainerHeight;
             if (draggerHeight >= draggerContainerHeight) {
+                this.$scrollContainer.removeClass("show-scrollbar");
                 this.$draggerContainer.hide();
             } else {
                 if (draggerHeight / draggerContainerHeight < 0.05) {
-                    draggerHeight = draggerContainerHeight / 100;
+                    draggerHeight = draggerContainerHeight * 0.05;
                 }
+                this.$scrollContainer.addClass("show-scrollbar");
                 this.$dragger.height(draggerHeight);
                 this.$draggerContainer.show();
             }

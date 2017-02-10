@@ -6,7 +6,7 @@
     user-select:none;
 }
 .ztree * {padding:0; margin:0; font-size:12px; font-family: Verdana, Arial, Helvetica, AppleGothic, sans-serif}
-.ztree {margin:0; padding:5px; color:#333}
+.ztree {margin:0; padding:0; color:#333}
 .ztree li{padding:0; margin:0; list-style:none; line-height:14px; text-align:left; white-space:nowrap; outline:0}
 .ztree li ul{ margin:0; padding:0 0 0 18px}
 .ztree li ul.line{ background:url(./img/line_conn.gif) 0 0 repeat-y;}
@@ -30,6 +30,16 @@
     width: 100%;
 }
 
+.ztree .tree-node-content .button {
+    width: 16px;height: 15px;
+    display: inline-block;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+.ztree .tree-node-content .button.ico_close { background: url(./img/zTreeStandard.png) -112px -2px no-repeat; }
+.ztree .tree-node-content .button.ico_open { background: url(./img/zTreeStandard.png) -110px -18px no-repeat; }
+.ztree .tree-node-content .button.ico_docu { background: url(./img/zTreeStandard.png) -112px -33px no-repeat; }
+
 .ztree .tree-node-switch {
     position: absolute;
     display: inline-block;
@@ -43,6 +53,7 @@
     width: 10px;
     height: 10px;
     display: inline-block;
+    vertical-align: middle;
 }
 
 .ztree .icon-switch-out.select-close {
@@ -78,66 +89,6 @@
     white-space: nowrap;
 }
 
-/* override mCustomScrollbar style */
-.mCSB_scrollTools .mCSB_buttonUp,
-.mCSB_scrollTools .mCSB_buttonDown,
-.mCSB_scrollTools .mCSB_buttonLeft,
-.mCSB_scrollTools .mCSB_buttonRight{
-    background-image: url(../img/SCB_Button.png); /* css sprites */
-    background-repeat: no-repeat;
-    opacity: 0.4; filter: "alpha(opacity=40)"; -ms-filter: "alpha(opacity=40)"; 
-}
-
-.mCSB_scrollTools .mCSB_buttonUp,
-.mCSB_scrollTools .mCSB_buttonDown{
-    display: block;
-    position: absolute;
-    height: 30px;
-    width: 100%;
-    overflow: hidden;
-    margin: 0 auto;
-    cursor: pointer;
-}
-
-.mCSB_scrollTools a + .mCSB_draggerContainer{ margin: 30px 0; }
-
-.mCSB_scrollTools .mCSB_draggerRail{
-    width: 100%;
-    height: 100%;
-    margin: 0 auto;
-    -webkit-border-radius: 0; -moz-border-radius: 0; border-radius: 0;
-}
-
-.mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{ /* the dragger element */
-    position: relative;
-    width: 100%;
-    height: 100%;
-    margin: 0 auto;
-    -webkit-border-radius: 0; -moz-border-radius: 0; border-radius: 0;
-    text-align: center;
-}
-
-.mCSB_inside > .mCSB_container{ margin-right: 17px; }
-
-/* theme: "dark" */
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_draggerRail{ background-color: #000; background-color: rgba(0,0,0,0.1); }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{ background-color: #000; background-color: rgba(0,0,0,0.15); }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_dragger:hover .mCSB_dragger_bar{ background-color: rgba(0,0,0,0.15); }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_dragger:active .mCSB_dragger_bar,
-.mCS-smartTree.mCSB_scrollTools .mCSB_dragger.mCSB_dragger_onDrag .mCSB_dragger_bar{ background-color: rgba(0,0,0,0.15); }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_buttonUp{ background-position: 0 0; }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_buttonDown{ background-position: -17px 0; }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_buttonLeft{ background-position: -80px -40px; }
-
-.mCS-smartTree.mCSB_scrollTools .mCSB_buttonRight{ background-position: -80px -56px; }
-
 /* stScrollbar */
 .st-scroll-box {
     position: relative;
@@ -149,11 +100,13 @@
 }
 .st-container {
     position: relative;
-    margin-right: 10px;
     overflow: hidden;
     left: 0;
     width: auto;
     height: auto;
+}
+.st-container.show-scrollbar {
+    margin-right: 10px;
 }
 
 .st-scrollbar {

@@ -970,6 +970,7 @@
             var mask = $("<div class='ztree-mask' style='position:absolute;left:0;top:0;width:100%;height:100%;display:none;cursor:pointer'>");
             setting.treeWrapObj.parent().append(mask);
             setting.treeObj.stScrollbar({
+                id: setting.treeId,
                 theme: "smartTree",
                 axis: "y",
                 scrollInertia: 0,
@@ -1560,6 +1561,7 @@
             var originTop = 0;
 
             this.obj.find(".st-dragger").stDraggable({
+                id: this.id,
                 dragInterval: o.settings.callbacks.whileScrollingInterval || 30,
                 callbacks: {
                     onDrag: function(e, target) {

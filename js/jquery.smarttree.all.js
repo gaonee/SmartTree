@@ -147,7 +147,7 @@
         }
     },
     _bindEvent = function(setting) {
-        setting.treeObj.on("click", "[data-node]", function(e) {
+        setting.treeObj.on("click." + setting.namespace, "[data-node]", function(e) {
             var node = data.getNodeCache(setting, this.id);
             
             view.focusChange(setting, node);
@@ -157,7 +157,7 @@
             }
 
             tools.apply(setting.callback.onClick, [e, setting.treeId, node]);
-        }).on("dblclick", "[data-node]", function(e) {
+        }).on("dblclick." + setting.namespace, "[data-node]", function(e) {
             var node = data.getNodeCache(setting, this.id);
 
             if (setting.advanced.dblClickSwitch) {
@@ -165,7 +165,7 @@
             }
 
             tools.apply(setting.callback.onDblClick, [e, setting.treeId, node]);
-        }).on("mouseenter", "[data-node]", function() {
+        }).on("mouseenter." + setting.namespace, "[data-node]", function() {
             var node = data.getNodeCache(setting, this.id);
 
             /* when we use mouse wheel to scroll the tree, 
@@ -177,7 +177,7 @@
                 data.setHoverNode(setting, node);
                 tools.apply(setting.view.addHoverDom, [setting.treeId, node]);
             }
-        }).on("mouseleave", "[data-node]", function(e) {
+        }).on("mouseleave." + setting.namespace, "[data-node]", function(e) {
             var node = data.getNodeCache(setting, this.id);
 
             if (data.getFocusNode(setting) != node) {
@@ -186,10 +186,10 @@
         });
     },
     _unbindEvent = function(setting) {
-        setting.treeObj.off("click", "[data-node]")
-        .off("dblclick", "[data-node]")
-        .off("mouseenter", "[data-node]")
-        .off("mouseleave", "[data-node]");
+        setting.treeObj.off("click." + setting.namespace, "[data-node]")
+        .off("dblclick." + setting.namespace, "[data-node]")
+        .off("mouseenter." + setting.namespace, "[data-node]")
+        .off("mouseleave." + setting.namespace, "[data-node]");
     },
     _init = {
         bind: [_bindEvent],
@@ -730,6 +730,11 @@
         focusChange: function(setting, node) {
             var focusNode = data.getFocusNode(setting);
 
+            // invalid node
+            if (!node.treeNode) {
+                return;
+            }
+
             if (focusNode == undefined ||
                 focusNode == -1 ||
                 !focusNode.treeNode) {
@@ -742,6 +747,8 @@
                     tools.apply(setting.view.removeHoverDom, [setting.treeId, focusNode]);
                     node.treeNode.addClass("focus");
                     data.setFocusNode(setting, node);
+                } else {
+                    node.treeNode.addClass("focus");
                 }
             }
         },
@@ -1039,6 +1046,7 @@
                 view.destroy(settings[treeId]);
             }
 
+            setting.namespace = "st_" + treeId;
             setting.treeId = treeId;
             setting.treeObj = obj;
             setting.treeObj.empty();
@@ -1236,15 +1244,15 @@
         doc = setting.treeObj.get(0).ownerDocument,
         body = setting.treeObj.get(0).ownerDocument.body;
 
-        setting.treeObj.on("mousedown", "[data-node]", function(e) {
+        setting.treeObj.on("mousedown." + setting.namespace, "[data-node]", function(e) {
             var node = data.getNodeCache(setting, this.id);
             view.focusChange(setting, node);
             mouseDown = true;
             dragNode = node;
             mouseDownX = e.clientX;
             mouseDownY = e.clientY;
-            $(doc).on("mousemove", _docMouseMove);
-            $(doc).on("mouseup", _docMouseUp);
+            $(doc).on("mousemove." + setting.namespace, _docMouseMove);
+            $(doc).on("mouseup." + setting.namespace, _docMouseUp);
         });
 
         function _docMouseMove(e) {
@@ -1304,8 +1312,8 @@
 
         function _docMouseUp(e) {
             mouseDown = false;
-            $(doc).off("mousemove", _docMouseMove)
-            .off("mouseup", _docMouseUp);
+            $(doc).off("mousemove." + setting.namespace, _docMouseMove)
+            .off("mouseup." + setting.namespace, _docMouseUp);
 
             if (dragFlag == 0) {
                 return true;
@@ -1323,10 +1331,10 @@
     _unbindEvent = function(setting) {
         var doc = setting.treeObj.get(0).ownerDocument;
 
-        setting.treeObj.off("mousedown", "[data-node]")
-        .off("mouseup", "[data-node]")
-        .off("mousemove", "[data-node]");
-        $(doc).off("mousemove").off("mouseup");
+        setting.treeObj.off("mousedown." + setting.namespace, "[data-node]")
+        .off("mouseup." + setting.namespace, "[data-node]")
+        .off("mousemove." + setting.namespace, "[data-node]");
+        $(doc).off("mousemove." + setting.namespace).off("mouseup");
     },
 
     _z = {
@@ -1378,6 +1386,7 @@
         this.dragFlag = 0;
         this.movingFlag = false;
         this.draggedElement = null;
+        this.namespace = "dg_" + this.id;
     }
     Draggable.prototype = {
         init: function() {
@@ -1389,12 +1398,12 @@
             this.bindEvent();
         },
         unbindEvent: function() {
-            this.obj.off("mousedown", this._onMouseDown);
-            this.doc.off("mousemove", this._onMouseMove)
+            this.obj.off("mousedown." + this.namespace, this._onMouseDown);
+            this.doc.off("mousemove." + this.namespace, this._onMouseMove)
             .off("mouseup", this._onMouseUp);
         },
         bindEvent: function() {
-            this.obj.on("mousedown", null, this, this._onMouseDown);
+            this.obj.on("mousedown." + this.namespace, null, this, this._onMouseDown);
         },
         _onMouseDown: function(e) {
             var o = e.data;
@@ -1408,8 +1417,8 @@
             o.mouseDownY = e.clientY;
             o.draggedElement = this;
 
-            o.doc.on("mousemove", null, o, o._onMouseMove)
-            .on("mouseup", null, o, o._onMouseUp);
+            o.doc.on("mousemove." + this.namespace, null, o, o._onMouseMove)
+            .on("mouseup." + this.namespace, null, o, o._onMouseUp);
 
             /* stop propagation */
             return false;
@@ -1467,8 +1476,8 @@
                 o._apply(o.callbacks.onDrop, [e, o.draggedElement]);
             }
 
-            o.doc.off("mousemove", o._onMouseMove)
-            .off("mouseup", o._onMouseUp);
+            o.doc.off("mousemove." + this.namespace, o._onMouseMove)
+            .off("mouseup." + this.namespace, o._onMouseUp);
 
             o.dragFlag = 0;
         },
@@ -1518,6 +1527,7 @@
         this.settings = options.settings;
         this.draggingFlag = false;
         this.minDraggerHeight = 30;
+        this.namespace = "sb_" + this.id;
     }
 
     Scrollbar.prototype = {
@@ -1576,8 +1586,8 @@
                 }
             });
 
-            this.obj.find(".st-dragger-rail").off("click")
-            .on("click", function(e) {
+            this.obj.find(".st-dragger-rail").off("click." + this.namespace)
+            .on("click." + this.namespace, function(e) {
                 var top = o.getDraggerTop();
                 if (e.offsetY > top) {
                     o.scrollDown();
@@ -1586,8 +1596,8 @@
                 }
             });
 
-            this.wrapObj.unbind("mousewheel")
-            .bind("mousewheel", function(e, delta, deltaX, deltaY) {
+            this.wrapObj.unbind("mousewheel." + this.namespace)
+            .bind("mousewheel." + this.namespace, function(e, delta, deltaX, deltaY) {
                 if (o.$draggerContainer.is(":hidden")) {
                     return true;
                 }

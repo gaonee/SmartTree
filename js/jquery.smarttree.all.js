@@ -1517,6 +1517,7 @@
         this.id = options.id;
         this.settings = options.settings;
         this.draggingFlag = false;
+        this.minDraggerHeight = 30;
     }
 
     Scrollbar.prototype = {
@@ -1607,7 +1608,7 @@
             })
         },
         getScrollTop: function() {
-            return parseInt(this.$scrollContainer.css("top"), 10) || 0;
+            return this.$scrollContainer[0].offsetTop;
         },
         getDraggerTop: function() {
             return parseInt(this.$dragger.css("top"), 10) || 0;
@@ -1656,7 +1657,6 @@
             this.updateDragTop();
         },
         updateScrollTop: function(top) {
-            var scrollContainer = this.wrapObj.find(".st-container");
             var scrollHeight = this.$scrollContainer.height() - this.wrapObj.height();
             var pos = top / (this.obj.find(".st-draggercontainer").height() - this.obj.find(".st-dragger").height());
             var top = -Math.round(pos * scrollHeight);
@@ -1678,8 +1678,8 @@
                 this.$scrollContainer.removeClass("show-scrollbar");
                 this.$draggerContainer.hide();
             } else {
-                if (draggerHeight / draggerContainerHeight < 0.05) {
-                    draggerHeight = draggerContainerHeight * 0.05;
+                if (draggerHeight < this.minDraggerHeight) {
+                    draggerHeight = this.minDraggerHeight;
                 }
                 this.$scrollContainer.addClass("show-scrollbar");
                 this.$dragger.height(draggerHeight);

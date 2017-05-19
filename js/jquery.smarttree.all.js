@@ -1634,7 +1634,8 @@
         },
         scrollUp: function() {
             var scrollTop = this.getScrollTop();
-            scrollTop = scrollTop+90 > 0 ? 0 : scrollTop+90;
+            var scrollAmount = this.settings.mouseWheel.scrollAmount;
+            scrollTop = scrollTop+scrollAmount > 0 ? 0 : scrollTop+scrollAmount;
             this.setScrollTop(scrollTop);
             this.updateDragTop();
             this._apply(this.settings.callbacks.whileScrolling, []);
@@ -1642,7 +1643,8 @@
         scrollDown: function() {
             var scrollHeight = this.$scrollContainer.height() - this.wrapObj.height();
             var scrollTop = this.getScrollTop();
-            scrollTop = scrollTop-90 < -scrollHeight ? -scrollHeight : scrollTop-90;
+            var scrollAmount = this.settings.mouseWheel.scrollAmount;
+            scrollTop = scrollTop-scrollAmount < -scrollHeight ? -scrollHeight : scrollTop-scrollAmount;
             this.setScrollTop(scrollTop);
             this.updateDragTop();
             this._apply(this.settings.callbacks.whileScrolling, []);

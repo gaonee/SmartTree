@@ -136,7 +136,7 @@
     height: 100%;
     margin: 0 auto;
     border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: rgba(0, 0, 0, 0.15);
 }
 .st-dragger-rail {
     width: 2px;

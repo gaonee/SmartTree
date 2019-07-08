@@ -1,6 +1,6 @@
 
 /*
- * JQuery smartTree core v0.0.01
+ * JQuery smartTree core v1.00
  *
  * Copyright (c) 2016 Jian.Ma
  *
@@ -138,12 +138,14 @@
             onRemove:null
         },
         advanced: {
+            accumulation: null,
             brunchSwitchOnly: true,
             dblClickSwitch: false,
             iconSkinClass: "button",
             getIconSkin: null,
             getName: null,
-            getTitle: null
+            getTitle: null,
+            statistics: null
         }
     },
     _bindEvent = function(setting) {
@@ -274,24 +276,6 @@
         },
         isSettingTrue: function(setting, node, settingCondition) {
             return tools.apply(settingCondition, [setting.treeId, node], settingCondition);
-        },
-        offset: function(ele) {
-            var top = ele.offsetTop;
-            var left = ele.offsetLeft;
-            while (ele.offsetParent) {
-                ele = ele.offsetParent;
-                if (window.navigator.userAgent.indexOf('MSTE 8') > -1) {
-                    top += ele.offsetTop;
-                    left += ele.offsetLeft;
-                } else {
-                    top += ele.offsetTop + ele.clientTop;
-                    left += ele.offsetLeft + ele.clientLeft;
-                }
-            }
-            return {
-                left: left,
-                top: top
-            }
         }
     },
     data = {
@@ -318,49 +302,6 @@
         },
         exSetting: function(s) {
             $.extend(true, _setting, s);
-        },
-        filterTreeNodes: function(setting, condition, expandFlag) {
-            var collection = [];
-            data.queryNodes(setting, condition, function(node, flag) {
-                var childKey = setting.data.key.children;
-                var parentNode = (node.parentTId) ? data.getNodeCache(setting, node.parentTId) : data.getRoot(setting);
-                var l = parentNode[childKey].length;
-                parentNode.hiddenNodes = parentNode.hiddenNodes || 0;
-                if (!flag) { /*filtered*/
-                    parentNode.hiddenNodes += (node.filtered || node.hidden) ? 0 : 1;
-                    node.filtered = true;
-                } else {
-                    parentNode.hiddenNodes -= (node.filtered || node.hidden) ? 1 : 0;
-                    node.filtered = false;
-
-                    node.displayIndex = collection.length;
-                    node.top = collection.length * setting.singleNodeHeight;
-                    collection.push(node);
-                }
-                /* set hidden false when filter again */
-                node.hidden = false;
-
-                if (expandFlag != undefined) {
-                    if (expandFlag && (node.collapse == expandFlag)) {
-                        view.setNodeExpandState(setting, node, expandFlag);
-                    }
-                }
-
-                /* recreate tree node when the node translate between brunch and leaf */
-                if (parentNode[childKey][l-1] == node) {
-                    if (parentNode.hiddenNodes == l &&
-                        !setting.data.keep.parent) {
-                        parentNode.isParent = false;
-                        parentNode.treeNode = view.createNode(setting, parentNode);
-                    } else {
-                        if (!parentNode.isParent) {
-                            parentNode.isParent = true;
-                            parentNode.treeNode = view.createNode(setting, parentNode)
-                        }
-                    }
-                }
-            });
-            data.setUnfolderNodes(setting, collection);
         },
         getCache: function(setting) {
             return caches[setting.treeId];
@@ -416,10 +357,6 @@
                 if (tmp) return tmp;
             }
             return null;
-        },
-        getNodeName: function(setting, node) {
-            var name = node.name || node.displayName || node.id;
-            return tools.apply(setting.advanced.getName, [setting.treeId, node], name);
         },
         getNodeIconSkinClass: function(setting, node) {
             var iconSkin = setting.advanced.getIconSkin;
@@ -481,6 +418,7 @@
         initNode: function(setting, parent, node, level) {
             var r = data.getRoot(setting);
             var childKey = setting.data.key.children;
+            var countData = null;
 
             node.tId = setting.treeId + "_" + (++r.zId);
             node.parentTId = parent.tId;
@@ -491,16 +429,21 @@
                 node.collapse = (node.level > setting.defaultOpenLevel) ? true : false;
 
                 for (var i = 0,l = node[childKey].length; i < l; i++) {
-                    data.initNode(setting, node, node[childKey][i], level + 1);
+                    var result = data.initNode(setting, node, node[childKey][i], level + 1);
+                    countData = tools.apply(setting.advanced.accumulation, [countData, result]);
                 }
             } else {
                 node.isParent = false;
+                countData = tools.apply(setting.advanced.statistics, [node]);
                 if (!setting.advanced.brunchSwitchOnly) {
                     node.collapse = (node.level > setting.defaultOpenLevel) ? true : false;
                 }
             }
 
+            node.name = tools.apply(setting.advanced.getName, [node, countData], node.name||node.id);
             data.insertCacheNode(setting, node);
+
+            return countData;
         },
         insertCacheNode: function(setting, node) {
             var cache = caches[setting.treeId];
@@ -536,24 +479,63 @@
             var childKey = setting.data.key.children;
 
             for (var i = 0, l = nodes[childKey].length; i < l; i++) {
-                data.queryNode(setting, nodes[childKey][i], condition, onprocess);
+                data.queryNode(setting, nodes[childKey][i], condition, onprocess, i==l-1);
             }
         },
-        queryNode: function(setting, node, condition, onprocess) {
+        queryNode: function(setting, node, condition, onprocess, isEndNode) {
             var childKey = setting.data.key.children;
             var cn = node[childKey];
             var flag = true;
 
             flag = tools.apply(condition, [node], condition);
 
-            tools.apply(onprocess, [node, flag]);
+            tools.apply(onprocess, [node, flag, isEndNode]);
 
             if (flag) {
                 if(cn && cn.length > 0) {
                     for (var i = 0,l = cn.length; i < l; i++) {
-                        data.queryNode(setting, cn[i], condition, onprocess);
+                        data.queryNode(setting, cn[i], condition, onprocess, i==l-1);
                     }
                 }
+            }
+        },
+        queryAndExcludeNodes: function(setting, condition, onprocess) {
+            var nodes = data.getRoot(setting);
+            var childKey = setting.data.key.children;
+
+            for (var i = 0, l = nodes[childKey].length; i < l; i++) {
+                data.queryAndExcludeNode(setting, nodes[childKey][i], condition, onprocess, i==l-1);
+            }
+        },
+        queryAndExcludeNode: function(setting, node, condition, onprocess, isEndNode) {
+            var childKey = setting.data.key.children;
+            var cn = node[childKey];
+            var flag = true;
+            var countData = null;
+
+            flag = tools.apply(condition, [node], condition);
+
+            tools.apply(onprocess, [node, flag, isEndNode]);
+
+            if (flag) {
+                if(cn && cn.length > 0) {
+                    for (var i = 0,l = cn.length; i < l; i++) {
+                        var result = data.queryAndExcludeNode(setting, cn[i], condition, onprocess, i==l-1);
+                        countData = tools.apply(setting.advanced.accumulation, [countData, result]);
+                    }
+                } else {
+                    countData = tools.apply(setting.advanced.statistics, [node]);
+                }
+                node.name = tools.apply(setting.advanced.getName, [node, countData], node.name||node.id);
+            }
+            
+            return countData;
+        },
+        queryParents: function(setting, node, onprocess) {
+            var parentNode = data.getNodeCache(setting, node.parentTId);
+            tools.apply(onprocess, [parentNode]);
+            if (parentNode) {
+                data.queryParents(setting, parentNode, onprocess);
             }
         },
         removeNodeCache: function(setting, node) {
@@ -570,57 +552,77 @@
             root.children = [];
             root.zId = 0;
         },
-        searchTreeNodes: function(setting, condition, expandFlag, maxCount, maxCountCallback) {
+        /**
+         * Function: Search or filter by condition from root
+         * @param setting Tree setting
+         * @param condition Search or filter condition
+         * @param type 'search' or 'filter'
+         * @param maxNum Upper limit value
+         * @param maxNumCallback Overrun the upper limit
+         */
+        searchAndFilter: function(setting, condition, type, maxNum, maxNumCallback) {
             var collection = [];
-            data.queryNodes(setting, function(node) {
-                if (node.filtered) {
-                    return false;
-                } else {
-                    return tools.apply(condition, [node], condition);
-                }
-            }, function(node, flag) {
-                var childKey = setting.data.key.children;
-                var parentNode = (node.parentTId) ? data.getNodeCache(setting, node.parentTId) : data.getRoot(setting);
-                var l = parentNode[childKey].length;
-                parentNode.hiddenNodes = parentNode.hiddenNodes || 0;
-                if (!flag) {
-                    parentNode.hiddenNodes += node.hidden || node.filtered ? 0 : 1;
-                    node.hidden = true;
-                } else {
-                    parentNode.hiddenNodes -= node.hidden || node.filtered ? 1 : 0;
-                    node.hidden = false;
+            var attr = type == "search" ? "hidden" : "filtered";
 
-                    node.displayIndex = collection.length;
-                    node.top = collection.length * setting.singleNodeHeight;
+            data.queryAndExcludeNodes(setting, condition, function(node, flag, isEndNode) {
+                // Ignore the filtered node when searching.
+                if (type == "search" && node.filtered) return;
+                // Reset search data when filter begin.
+                if (type == "filter") node.hidden = false;
+                if (!node.parentTId) {
                     collection.push(node);
+                    return;
                 }
 
-                if (expandFlag != undefined) {
-                    if (expandFlag && (node.collapse == expandFlag)) {
-                        view.setNodeExpandState(setting, node, expandFlag);
-                    }
-                }
+                data.setHiddenState(setting, node, attr, !flag);
+                view.setNodeExpandState(setting, node, true);
+                flag && collection.push(node);
 
-                if (parentNode[childKey][l-1] == node) {
-                    if (parentNode.hiddenNodes == l &&
-                        !setting.data.keep.parent) {
-                        parentNode.isParent = false;
-                        parentNode.treeNode = view.createNode(setting, parentNode);
-                    } else {
-                        if (!parentNode.isParent) {
-                            parentNode.isParent = true;
-                            parentNode.treeNode = view.createNode(setting, parentNode)
-                        }
-                    }
+                if (isEndNode) {
+                    data.updateParent(setting, node, attr);
                 }
             });
-            if (collection.length > maxCount) {
-                tools.apply(maxCountCallback, []);
+            // Ignored the parent nodes by call function 'updateParent'.
+            for (var i = collection.length-1; i >= 0; i--) {
+                if (collection[i][attr]) {
+                    collection.splice(i, 1);
+                }
+            }
+            // calculate the top value.
+            for (var j = collection.length-1; j >= 0; j--) {
+                collection[j].displayIndex = j;
+                collection[j].top = j * setting.singleNodeHeight;
+                view.setNodeName(setting, collection[j]);
+                view.setNodeSwitch(setting, collection[j]);
+            }
+            if (maxNum) {
+                if (collection.length > maxNum) {
+                    tools.apply(maxNumCallback, []);
+                }
             }
             data.setUnfolderNodes(setting, collection);
         },
         setFocusNode: function(setting, node) {
             caches[setting.treeId].focusNode = node;
+        },
+        /**
+         * Function: Show or hide node,and chagne attribute 'hiddenNodes' value for it's parent node.
+         * @param setting Tree setting
+         * @param node Target node
+         * @param attr 'hidden' or 'filtered'
+         * @param state boolean value, TRUE means hide,FALSE means display.
+         */
+        setHiddenState: function(setting, node, attr, state) {
+            var parentNode = data.getNodeCache(setting, node.parentTId);
+            if (parentNode) {
+                parentNode.hiddenNodes = parentNode.hiddenNodes || 0;
+                if (state) {
+                    parentNode.hiddenNodes += node.hidden || node.filtered ? 0 : 1;
+                } else {
+                    parentNode.hiddenNodes -= node.hidden || node.filtered ? 1 : 0;
+                }
+            }
+            node[attr] = state;
         },
         setHoverNode: function(setting, node) {
             caches[setting.treeId].hoverNode = node;
@@ -672,6 +674,31 @@
             }else {
                 return [nodes];
             }
+        },
+        /**
+         * Function: After filter or search,if all children is been hidden,then exclude the parent.
+         */
+        updateParent: function(setting, node, attr) {
+            var childKey = setting.data.key.children;
+            data.queryParents(setting, node, function(parent) {
+                // Ignore root
+                if (parent) {
+                    if (parent.hiddenNodes == parent[childKey].length) {
+                        var grandParent = data.getNodeCache(setting, parent.parentTId);
+                        // If parent exists,so it's not root,hide this node.
+                        if (grandParent) {
+                            data.setHiddenState(setting, parent, attr, true);
+                        } else {
+                            parent.isParent = false;
+                        }
+                    } else {
+                        // rest 'isParent' attribute.
+                        if (!parent.isParent) {
+                            parent.isParent = true;
+                        }
+                    }
+                }
+            });
         }
     },
     view = {
@@ -752,13 +779,6 @@
                 }
             }
         },
-        filterTreeNodes: function(setting, condition, expandFlag, scrollToTopFlag) {
-            data.filterTreeNodes(setting, condition, expandFlag);
-            view.updateVisibleArea(setting);
-            if (scrollToTopFlag) {
-                view.scrollToTop(setting);
-            }
-        },
         genBrunchNode: function(setting, node) {
             var nodeStr = "<li " + view.genNodeContainer(setting, node) + ">" +
             view.genSwitchIcon(setting, node) +
@@ -796,14 +816,13 @@
             return "<span data-iconskin class='" + setting.advanced.iconSkinClass + " " + data.getNodeIconSkinClass(setting, node) + "'></span>";
         },
         genNodeContentName: function(setting, node) {
-            var name = data.getNodeName(setting, node);
             var title = null;
 
             if (tools.isSettingTrue(setting, node, setting.view.showTitle)) {
-                title = node.title || tools.apply(setting.advanced.getTitle, [setting.treeId, node], name);
+                title = node.title || tools.apply(setting.advanced.getTitle, [setting.treeId, node], node.name);
             }
 
-            return "<span title='" + (title?title:'') + "' class='ztree-node-name'>" + name + "</span>";
+            return "<span title='" + (title?title:'') + "' class='ztree-node-name'>" + node.name + "</span>";
         },
         renderDisplayNode: function(setting) {
             var unfoldNode = unfoldNodes[setting.treeId];
@@ -861,10 +880,9 @@
             setting.treeObj.stScrollbar("update");
         },
         setNodeName: function(setting, node) {
-            var name = data.getNodeName(setting, node);
             /* ignore if node never create */
             if (node.treeNode) {
-                node.treeNode.find(".ztree-node-name").text(name);
+                node.treeNode.find(".ztree-node-name").text(node.name);
             }
         },
         setNodeTitle: function(setting, node) {
@@ -903,8 +921,8 @@
         scrollToTop: function(setting) {
             setting.treeObj.stScrollbar("scrollTo", "top");
         },
-        searchTreeNodes: function(setting, condition, expandFlag, scrollToTopFlag, maxCount, maxCountCallback) {
-            data.searchTreeNodes(setting, condition, expandFlag, maxCount, maxCountCallback);
+        searchAndFilter: function(setting, condition, type, scrollToTopFlag, maxNum, maxNumCallback) {
+            data.searchAndFilter(setting, condition, type, maxNum, maxNumCallback);
             view.updateVisibleArea(setting);
             if (scrollToTopFlag) {
                 view.scrollToTop(setting);
@@ -1098,8 +1116,11 @@
                 expandAll: function(expandFlag) {
                     view.expandAll(setting, expandFlag);
                 },
-                filterTreeNodes: function(condition, expandFlag, scrollToTopFlag) {
-                    view.filterTreeNodes(setting, condition, expandFlag, scrollToTopFlag);
+                filterTreeNodes: function(condition, scrollToTopFlag) {
+                    view.searchAndFilter(setting, condition, "filter", scrollToTopFlag);
+                },
+                getChildren: function(node) {
+                    return node[setting.data.key.children];
                 },
                 getElementByNode: function(node) {
                     node.treeNode = node.treeNode || view.createNode(setting, node);
@@ -1119,8 +1140,8 @@
                     if (!node) return;
                     view.removeNode(setting, node);
                 },
-                searchTreeNodes: function(condition, expandFlag, scrollToTopFlag, maxCount, maxCountCallback) {
-                    view.searchTreeNodes(setting, condition, expandFlag, scrollToTopFlag, maxCount, maxCountCallback);
+                searchTreeNodes: function(condition, scrollToTopFlag, maxNum, maxNumCallback) {
+                    view.searchAndFilter(setting, condition, "search", scrollToTopFlag, maxNum, maxNumCallback);
                 },
                 transformTozTreeNodes : function(simpleNodes) {
                     return data.transformTozTreeFormat(setting, simpleNodes);
@@ -1144,7 +1165,7 @@
     consts = zt.consts;
 })(jQuery);
 /*
- * JQuery smartTree exedit v0.0.01
+ * JQuery smartTree exedit v1.00
  *
  * Copyright (c) 2016 Jian.Ma
  *
@@ -1358,7 +1379,7 @@
 })(jQuery);
 
 /*
- * JQuery smartTree stDraggable v0.0.01
+ * JQuery smartTree stDraggable v1.00
  *
  * Copyright (c) 2016 Jian.Ma
  *
